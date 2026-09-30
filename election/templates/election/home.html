@@ -1,0 +1,188 @@
+{% extends "base.html" %}
+
+{% block content %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- HERO SECTION -->
+<div style="text-align: center; margin-bottom: 3rem;">
+  <h1 class="page-title">🗳️ Techno-X Election 2026</h1>
+  <p class="page-subtitle">Cast your vote, nominate your leaders, and track results in real time.</p>
+</div>
+
+<!-- QUICK ACTION GRID -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.25rem; margin-bottom: 3.5rem;">
+
+  <a href="{% url 'nominate' %}" style="text-decoration: none;">
+    <div class="glass-card" style="text-align: center; cursor: pointer; padding: 1.8rem 1rem; --border-glow: rgba(139,92,246,0.5); --shadow-glow: 0 0 20px rgba(139,92,246,0.3);">
+      <div style="font-size: 2.8rem; margin-bottom: 0.75rem; text-shadow: 0 4px 12px rgba(139,92,246,0.4);">📋</div>
+      <div style="font-weight: 700; font-size: 1.1rem; color: var(--text); margin-bottom: 0.3rem;">Nomination</div>
+      <div style="font-size: 0.82rem; color: var(--text-muted);">Register a candidate</div>
+    </div>
+  </a>
+
+  <a href="{% url 'voter_login' %}" style="text-decoration: none;">
+    <div class="glass-card" style="text-align: center; cursor: pointer; padding: 1.8rem 1rem; border-color: rgba(6,182,212,0.4); --border-glow: rgba(6,182,212,0.8); --shadow-glow: 0 0 24px rgba(6,182,212,0.4);">
+      <div style="font-size: 2.8rem; margin-bottom: 0.75rem; text-shadow: 0 4px 12px rgba(6,182,212,0.4);">🗳️</div>
+      <div style="font-weight: 700; font-size: 1.1rem; color: var(--text); margin-bottom: 0.3rem;">Vote Now</div>
+      <div style="font-size: 0.82rem; color: var(--text-muted);">Cast your ballot</div>
+    </div>
+  </a>
+
+  <a href="{% url 'nominee_list' %}" style="text-decoration: none;">
+    <div class="glass-card" style="text-align: center; cursor: pointer; padding: 1.8rem 1rem; --border-glow: rgba(236,72,153,0.5); --shadow-glow: 0 0 20px rgba(236,72,153,0.3);">
+      <div style="font-size: 2.8rem; margin-bottom: 0.75rem; text-shadow: 0 4px 12px rgba(236,72,153,0.4);">👥</div>
+      <div style="font-weight: 700; font-size: 1.1rem; color: var(--text); margin-bottom: 0.3rem;">Nominee List</div>
+      <div style="font-size: 0.82rem; color: var(--text-muted);">View all candidates</div>
+    </div>
+  </a>
+
+  <a href="{% url 'results' %}" style="text-decoration: none;">
+    <div class="glass-card" style="text-align: center; cursor: pointer; padding: 1.8rem 1rem; --border-glow: rgba(99,102,241,0.5); --shadow-glow: 0 0 20px rgba(99,102,241,0.3);">
+      <div style="font-size: 2.8rem; margin-bottom: 0.75rem; text-shadow: 0 4px 12px rgba(99,102,241,0.4);">📊</div>
+      <div style="font-weight: 700; font-size: 1.1rem; color: var(--text); margin-bottom: 0.3rem;">Semester Results</div>
+      <div style="font-size: 0.82rem; color: var(--text-muted);">Semester-wise view</div>
+    </div>
+  </a>
+
+  <a href="{% url 'elected_members' %}" style="text-decoration: none;">
+    <div class="glass-card" style="text-align: center; cursor: pointer; padding: 1.8rem 1rem; --border-glow: rgba(250,204,21,0.5); --shadow-glow: 0 0 20px rgba(250,204,21,0.3);">
+      <div style="font-size: 2.8rem; margin-bottom: 0.75rem; text-shadow: 0 4px 12px rgba(250,204,21,0.4);">🏆</div>
+      <div style="font-weight: 700; font-size: 1.1rem; color: var(--text); margin-bottom: 0.3rem;">Elected Members</div>
+      <div style="font-size: 0.82rem; color: var(--text-muted);">View winners</div>
+    </div>
+  </a>
+
+  <a href="{% url 'download_all_results_pdf' %}" style="text-decoration: none;">
+    <div class="glass-card" style="text-align: center; cursor: pointer; padding: 1.8rem 1rem; --border-glow: rgba(244,63,94,0.5); --shadow-glow: 0 0 20px rgba(244,63,94,0.3);">
+      <div style="font-size: 2.8rem; margin-bottom: 0.75rem; text-shadow: 0 4px 12px rgba(244,63,94,0.4);">📄</div>
+      <div style="font-weight: 700; font-size: 1.1rem; color: var(--text); margin-bottom: 0.3rem;">Download PDF</div>
+      <div style="font-size: 0.82rem; color: var(--text-muted);">Full results PDF</div>
+    </div>
+  </a>
+
+  <a href="{% url 'download_all_results_docx' %}" style="text-decoration: none;">
+    <div class="glass-card" style="text-align: center; cursor: pointer; padding: 1.8rem 1rem; --border-glow: rgba(16,185,129,0.5); --shadow-glow: 0 0 20px rgba(16,185,129,0.3);">
+      <div style="font-size: 2.8rem; margin-bottom: 0.75rem; text-shadow: 0 4px 12px rgba(16,185,129,0.4);">📝</div>
+      <div style="font-weight: 700; font-size: 1.1rem; color: var(--text); margin-bottom: 0.3rem;">Download DOCX</div>
+      <div style="font-size: 0.82rem; color: var(--text-muted);">Full results DOCX</div>
+    </div>
+  </a>
+
+</div>
+
+<!-- LIVE DASHBOARD SECTION -->
+<div style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.75rem;">
+  <h2 class="page-title" style="margin-bottom: 0;">Live Dashboard</h2>
+  <span class="badge badge-accent">LIVE</span>
+</div>
+
+<!-- STAT CARDS -->
+<div class="stat-grid" style="margin-bottom: 2.5rem;">
+  <div class="stat-card">
+    <div class="stat-value">{{ total_students }}</div>
+    <div class="stat-label">Total Voters</div>
+  </div>
+  <div class="stat-card" style="--accent-grad: linear-gradient(135deg,#06b6d4,#0ea5e9);">
+    <div class="stat-value" style="--stat-grad: linear-gradient(135deg,#06b6d4,#0ea5e9);">{{ total_votes_cast }}</div>
+    <div class="stat-label">Votes Cast</div>
+  </div>
+  <div class="stat-card" style="--accent-grad: linear-gradient(135deg,#f43f5e,#fb923c);">
+    <div class="stat-value" style="--stat-grad: linear-gradient(135deg,#f43f5e,#fb923c);">{{ not_voted_count }}</div>
+    <div class="stat-label">Not Yet Voted</div>
+  </div>
+</div>
+
+<!-- CHARTS GRID -->
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+  <div class="glass-card">
+    <h3 style="font-size: 1rem; font-weight: 700; color: var(--text); margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.5rem;">📊 Votes per Position</h3>
+    <canvas id="positionChart" height="220"></canvas>
+  </div>
+  <div class="glass-card">
+    <h3 style="font-size: 1rem; font-weight: 700; color: var(--text); margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.5rem;">🥧 Voter Turnout</h3>
+    <canvas id="turnoutChart" height="220"></canvas>
+  </div>
+</div>
+
+<div class="glass-card" style="margin-bottom: 2rem;">
+  <h3 style="font-size: 1rem; font-weight: 700; color: var(--text); margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.5rem;">📚 Voters by Semester</h3>
+  <canvas id="semesterChart" height="120"></canvas>
+</div>
+
+<script>
+  Chart.defaults.color = '#94a3b8';
+  Chart.defaults.font.family = 'Outfit';
+
+  const gridColor = 'rgba(255,255,255,0.06)';
+
+  // Votes per Position
+  new Chart(document.getElementById('positionChart'), {
+    type: 'bar',
+    data: {
+      labels: {{ position_names|safe|default:"[]" }},
+      datasets: [{
+        label: 'Votes Cast',
+        data: {{ votes_per_position|safe|default:"[]" }},
+        backgroundColor: 'rgba(99,102,241,0.6)',
+        borderColor: '#6366f1',
+        borderWidth: 1,
+        borderRadius: 6,
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { beginAtZero: true, ticks: { stepSize: 1 }, grid: { color: gridColor } },
+        x: { grid: { color: gridColor } }
+      }
+    }
+  });
+
+  // Voter Turnout Doughnut
+  new Chart(document.getElementById('turnoutChart'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Voted', 'Not Voted'],
+      datasets: [{
+        data: [{{ voted_count|default:"0" }}, {{ not_voted_count|default:"0" }}],
+        backgroundColor: ['rgba(6,182,212,0.7)', 'rgba(244,63,94,0.7)'],
+        borderColor: ['#06b6d4', '#f43f5e'],
+        borderWidth: 2,
+        hoverOffset: 6,
+      }]
+    },
+    options: {
+      responsive: true,
+      cutout: '65%',
+      plugins: {
+        legend: { position: 'bottom', labels: { padding: 16, usePointStyle: true } }
+      }
+    }
+  });
+
+  // Voters by Semester
+  new Chart(document.getElementById('semesterChart'), {
+    type: 'bar',
+    data: {
+      labels: {{ semesters|safe|default:"[]" }}.map(s => s + 'th Semester'),
+      datasets: [{
+        label: 'Total Voters',
+        data: {{ voters_per_semester|safe|default:"[]" }},
+        backgroundColor: ['rgba(139,92,246,0.7)', 'rgba(99,102,241,0.7)', 'rgba(6,182,212,0.7)'],
+        borderColor: ['#8b5cf6', '#6366f1', '#06b6d4'],
+        borderWidth: 1,
+        borderRadius: 6,
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { beginAtZero: true, ticks: { stepSize: 10 }, grid: { color: gridColor } },
+        x: { grid: { display: false } }
+      }
+    }
+  });
+</script>
+{% endblock %}

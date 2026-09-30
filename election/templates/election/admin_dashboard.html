@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block content %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<h1 class="page-title">⚡ Admin Dashboard</h1>
+<p class="page-subtitle">Live election statistics and vote distribution charts.</p>
+
+<!-- STAT CARDS -->
+<div class="stat-grid">
+  <div class="stat-card">
+    <div class="stat-value">{{ total_students }}</div>
+    <div class="stat-label">Total Voters</div>
+  </div>
+  <div class="stat-card" style="--accent-grad: linear-gradient(135deg,#06b6d4,#0ea5e9);">
+    <div class="stat-value" style="--stat-grad: linear-gradient(135deg,#06b6d4,#0ea5e9);">{{ total_votes_cast }}</div>
+    <div class="stat-label">Votes Cast</div>
+  </div>
+  <div class="stat-card" style="--accent-grad: linear-gradient(135deg,#f43f5e,#fb923c);">
+    <div class="stat-value" style="--stat-grad: linear-gradient(135deg,#f43f5e,#fb923c);">{{ not_voted_count }}</div>
+    <div class="stat-label">Not Yet Voted</div>
+  </div>
+</div>
+
+<!-- CHARTS -->
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+  <div class="glass-card">
+    <h3 style="font-size: 1rem; font-weight: 700; color: var(--text); margin-bottom: 1.25rem;">📊 Votes per Position</h3>
+    <canvas id="positionChart" height="240"></canvas>
+  </div>
+  <div class="glass-card">
+    <h3 style="font-size: 1rem; font-weight: 700; color: var(--text); margin-bottom: 1.25rem;">🥧 Voter Turnout</h3>
+    <canvas id="turnoutChart" height="240"></canvas>
+  </div>
+</div>
+
+<div class="glass-card">
+  <h3 style="font-size: 1rem; font-weight: 700; color: var(--text); margin-bottom: 1.25rem;">📚 Voters by Semester</h3>
+  <canvas id="semesterChart" height="120"></canvas>
+</div>
+
+<script>
+  Chart.defaults.color = '#94a3b8';
+  Chart.defaults.font.family = 'Outfit';
+  const gridColor = 'rgba(255,255,255,0.06)';
+
+  new Chart(document.getElementById('positionChart'), {
+    type: 'bar',
+    data: {
+      labels: {{ position_names|safe }},
+      datasets: [{ label: 'Votes', data: {{ votes_per_position|safe }},
+        backgroundColor: 'rgba(99,102,241,0.65)', borderColor: '#6366f1',
+        borderWidth: 1, borderRadius: 6 }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { beginAtZero: true, ticks: { stepSize: 1 }, grid: { color: gridColor } },
+        x: { grid: { color: gridColor } }
+      }
+    }
+  });
+
+  new Chart(document.getElementById('turnoutChart'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Voted', 'Not Voted'],
+      datasets: [{ data: [{{ voted_count }}, {{ not_voted_count }}],
+        backgroundColor: ['rgba(6,182,212,0.75)', 'rgba(244,63,94,0.75)'],
+        borderColor: ['#06b6d4', '#f43f5e'], borderWidth: 2, hoverOffset: 6 }]
+    },
+    options: {
+      cutout: '65%',
+      plugins: { legend: { position: 'bottom', labels: { padding: 16, usePointStyle: true } } }
+    }
+  });
+
+  new Chart(document.getElementById('semesterChart'), {
+    type: 'bar',
+    data: {
+      labels: {{ semesters|safe }}.map(s => s + 'th Semester'),
+      datasets: [{ label: 'Voters', data: {{ voters_per_semester|safe }},
+        backgroundColor: ['rgba(139,92,246,0.7)', 'rgba(99,102,241,0.7)', 'rgba(6,182,212,0.7)'],
+        borderColor: ['#8b5cf6', '#6366f1', '#06b6d4'],
+        borderWidth: 1, borderRadius: 6 }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { beginAtZero: true, ticks: { stepSize: 10 }, grid: { color: gridColor } },
+        x: { grid: { display: false } }
+      }
+    }
+  });
+</script>
+{% endblock %}

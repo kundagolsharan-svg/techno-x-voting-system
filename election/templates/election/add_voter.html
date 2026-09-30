@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+{% block content %}
+<div style="max-width: 700px; margin: 2rem auto;">
+  <div style="text-align: center; margin-bottom: 2rem;">
+    <div style="font-size: 3rem; margin-bottom: 0.75rem;">➕</div>
+    <h1 class="page-title">Add Voter</h1>
+    <p class="page-subtitle">Add a single voter or bulk import from a CSV file.</p>
+  </div>
+
+  <!-- ===== BULK CSV UPLOAD ===== -->
+  <div class="glass-card" style="margin-bottom: 2rem; border: 2px dashed var(--border); position: relative; overflow: hidden;">
+    <!-- Color top strip -->
+    <div style="position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, #10b981, #06b6d4);"></div>
+    <div style="padding-top: 0.5rem;">
+      <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.25rem;">
+        <div style="font-size: 2rem;">📂</div>
+        <div>
+          <h2 style="font-size: 1.2rem; font-weight: 700; color: var(--text); margin: 0;">Bulk Import via CSV</h2>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">Upload a CSV file to register hundreds of students at once.</p>
+        </div>
+        <span style="margin-left: auto; background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.4); color: #10b981; font-size: 0.75rem; font-weight: 700; padding: 0.25rem 0.75rem; border-radius: 999px; white-space: nowrap;">RECOMMENDED</span>
+      </div>
+
+      <!-- CSV format guide -->
+      <div style="background: var(--bg-card-hover); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; margin-bottom: 1.25rem; font-size: 0.85rem;">
+        <div style="color: var(--text); font-weight: 600; margin-bottom: 0.5rem;">📋 Required CSV Format (first row must be headers):</div>
+        <code style="color: #10b981; font-size: 0.8rem; display: block; margin-bottom: 0.5rem;">name, usn, semester, gender, division</code>
+        <div style="color: var(--text-muted); line-height: 1.6;">
+          • <strong style="color: var(--text);">semester</strong>: must be <code>3</code>, <code>5</code>, <code>7</code>, or <code>general</code><br>
+          • <strong style="color: var(--text);">division</strong>: must be <code>A</code> or <code>B</code><br>
+          • <strong style="color: var(--text);">gender</strong>: <code>Male</code> or <code>Female</code>
+        </div>
+        <div style="margin-top: 0.75rem;">
+          <a href="/static/students_template.csv" download="students_template.csv" style="color: #06b6d4; font-size: 0.82rem; text-decoration: none; font-weight: 600;">⬇ Download Template CSV</a>
+        </div>
+      </div>
+
+      <form method="POST" enctype="multipart/form-data" action="{% url 'add_voter' %}" id="csvForm">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="bulk_csv">
+        <div id="dropZone" style="border: 2px dashed var(--border); border-radius: 10px; padding: 2rem; text-align: center; cursor: pointer; transition: border-color 0.2s, background 0.2s; margin-bottom: 1rem;" onclick="document.getElementById('csv_file').click()">
+          <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">☁️</div>
+          <div style="color: var(--text); font-weight: 600; margin-bottom: 0.25rem;">Click to select or drag & drop your CSV file</div>
+          <div style="color: var(--text-muted); font-size: 0.82rem;" id="fileName">No file chosen</div>
+        </div>
+        <input type="file" name="csv_file" id="csv_file" accept=".csv" style="display: none;">
+        <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 0.9rem; font-size: 1rem; background: linear-gradient(135deg,#10b981,#06b6d4);">
+          📂 Import CSV — Register All Students
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===== SINGLE VOTER ===== -->
+  <div class="glass-card">
+    <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.5rem;">
+      <div style="font-size: 1.5rem;">👤</div>
+      <h2 style="font-size: 1.1rem; font-weight: 700; color: var(--text); margin: 0;">Add Single Voter</h2>
+    </div>
+    <form method="POST" action="{% url 'add_voter' %}">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="single">
+      <div class="form-group">
+        <label for="name">Full Name</label>
+        <input type="text" id="name" name="name" required placeholder="e.g. Priya Sharma">
+      </div>
+      <div class="form-group">
+        <label for="usn">USN</label>
+        <input type="text" id="usn" name="usn" required placeholder="e.g. 2TG24CS001" style="text-transform: uppercase;">
+      </div>
+      <div class="form-group">
+        <label for="semester">Semester</label>
+        <select id="semester" name="semester" required>
+          <option value="">Select Semester</option>
+          <option value="3">3rd Semester</option>
+          <option value="5">5th Semester</option>
+          <option value="7">7th Semester</option>
+        </select>
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+        <div class="form-group">
+          <label for="division">Division</label>
+          <select id="division" name="division" required>
+            <option value="">Select</option>
+            <option value="A">A</option>
+            <option value="B">B</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="gender">Gender</label>
+          <select id="gender" name="gender" required>
+            <option value="">Select</option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+          </select>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 0.85rem; font-size: 1rem; margin-top: 0.5rem;">
+        ➕ Add Voter
+      </button>
+    </form>
+  </div>
+</div>
+
+<script>
+  // Show selected filename
+  document.getElementById('csv_file').addEventListener('change', function() {
+    const name = this.files[0] ? this.files[0].name : 'No file chosen';
+    document.getElementById('fileName').textContent = name;
+    document.getElementById('dropZone').style.borderColor = 'var(--accent)';
+    document.getElementById('dropZone').style.background = 'rgba(99,102,241,0.05)';
+  });
+
+  // Drag & Drop support
+  const dropZone = document.getElementById('dropZone');
+  dropZone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    dropZone.style.borderColor = '#10b981';
+    dropZone.style.background = 'rgba(16,185,129,0.05)';
+  });
+  dropZone.addEventListener('dragleave', () => {
+    dropZone.style.borderColor = 'var(--border)';
+    dropZone.style.background = '';
+  });
+  dropZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    const file = e.dataTransfer.files[0];
+    if (file && file.name.endsWith('.csv')) {
+      const input = document.getElementById('csv_file');
+      const dt = new DataTransfer();
+      dt.items.add(file);
+      input.files = dt.files;
+      document.getElementById('fileName').textContent = file.name;
+      dropZone.style.borderColor = '#10b981';
+      dropZone.style.background = 'rgba(16,185,129,0.05)';
+    }
+  });
+</script>
+{% endblock %}

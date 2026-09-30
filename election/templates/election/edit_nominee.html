@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div style="max-width: 650px; margin: 0 auto; padding: 1.5rem;">
+  <div style="text-align: center; margin-bottom: 2rem;">
+    <h1 class="page-title">Edit Nominee</h1>
+    <p class="page-subtitle">Update nominee details and photo.</p>
+  </div>
+
+  <form method="post" enctype="multipart/form-data" class="glass-card" style="display: flex; flex-direction: column; gap: 1.5rem; padding: 2rem;">
+    {% csrf_token %}
+    <input type="hidden" name="semester" value="{{ semester_filter }}">
+
+    <!-- Photo Preview -->
+    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+      <label style="font-weight: 600; color: var(--text);">Current Photo:</label>
+      <div style="display: flex; align-items: center; gap: 1.25rem; padding: 1rem; background: var(--bg-card-hover); border-radius: 8px; border: 1px solid var(--border);">
+        {% if nominee.photo %}
+          <img src="{{ nominee.photo.url }}" alt="{{ nominee.student.name }}" style="width: 70px; height: 70px; border-radius: 50%; object-fit: cover; border: 2px solid var(--border); box-shadow: var(--shadow);">
+        {% else %}
+          <div style="width: 70px; height: 70px; border-radius: 50%; background: var(--bg-card); display: flex; align-items: center; justify-content: center; font-size: 0.8rem; color: var(--text-muted); border: 2px solid var(--border);">No Photo</div>
+        {% endif %}
+        <div>
+          <strong style="color: var(--text); font-size: 1.1rem;">{{ nominee.student.name }}</strong><br>
+          <span style="font-size: 0.85rem; color: var(--text-muted);">USN: {{ nominee.student.usn }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Student Name -->
+    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+      <label for="{{ form.student_name.id_for_label }}" style="font-weight: 600; color: var(--text);">Student Name:</label>
+      <input type="text" name="{{ form.student_name.name }}" id="{{ form.student_name.id_for_label }}" value="{{ form.student_name.value|default:'' }}" style="padding: 0.75rem 1rem; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-card); color: var(--text); font-size: 1rem; outline: none;">
+      {% for error in form.student_name.errors %}
+        <span style="color: #ef4444; font-size: 0.85rem;">{{ error }}</span>
+      {% endfor %}
+    </div>
+
+    <!-- Student USN (read-only) -->
+    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+      <label for="{{ form.student_usn.id_for_label }}" style="font-weight: 600; color: var(--text);">USN (Read-only):</label>
+      <input type="text" name="{{ form.student_usn.name }}" id="{{ form.student_usn.id_for_label }}" value="{{ form.student_usn.value|default:'' }}" readonly style="padding: 0.75rem 1rem; border-radius: 8px; border: 1px solid var(--border); background: rgba(0,0,0,0.05); color: var(--text-muted); font-size: 1rem; outline: none; cursor: not-allowed;">
+    </div>
+
+    <!-- Semester & Division -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+      <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+        <label for="{{ form.student_semester.id_for_label }}" style="font-weight: 600; color: var(--text);">Semester:</label>
+        {{ form.student_semester }}
+        {% for error in form.student_semester.errors %}
+          <span style="color: #ef4444; font-size: 0.85rem;">{{ error }}</span>
+        {% endfor %}
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+        <label for="{{ form.student_division.id_for_label }}" style="font-weight: 600; color: var(--text);">Division:</label>
+        {{ form.student_division }}
+        {% for error in form.student_division.errors %}
+          <span style="color: #ef4444; font-size: 0.85rem;">{{ error }}</span>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Position -->
+    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+      <label for="{{ form.position.id_for_label }}" style="font-weight: 600; color: var(--text);">Contesting Position:</label>
+      {{ form.position }}
+      {% for error in form.position.errors %}
+        <span style="color: #ef4444; font-size: 0.85rem;">{{ error }}</span>
+      {% endfor %}
+    </div>
+
+    <!-- Update Photo -->
+    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+      <label for="{{ form.photo.id_for_label }}" style="font-weight: 600; color: var(--text);">Upload New Photo:</label>
+      {{ form.photo }}
+      {% for error in form.photo.errors %}
+        <span style="color: #ef4444; font-size: 0.85rem;">{{ error }}</span>
+      {% endfor %}
+    </div>
+
+    <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+      <button type="submit" class="btn btn-primary" style="flex: 1; justify-content: center;">Save Changes</button>
+      <a href="{% url 'nominee_list' %}{% if semester_filter %}?semester={{ semester_filter }}{% endif %}" class="btn btn-ghost" style="flex: 1; justify-content: center;">Cancel</a>
+    </div>
+  </form>
+</div>
+
+<style>
+  /* Ensure form widgets use the theme variables */
+  select, input[type="file"] {
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--bg-card);
+    color: var(--text);
+    font-size: 1rem;
+    outline: none;
+    width: 100%;
+  }
+  select:focus, input[type="text"]:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(99,102,241,0.2);
+  }
+</style>
+{% endblock %}

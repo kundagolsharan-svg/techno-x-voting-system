@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div style="max-width: 700px; margin: 0 auto;">
+  <div style="text-align: center; margin-bottom: 2rem;">
+    <div style="font-size: 3rem; margin-bottom: 0.75rem;">📋</div>
+    <h1 class="page-title">Nomination Form</h1>
+    <p class="page-subtitle">Register a student as a candidate for an election position.</p>
+  </div>
+
+  <div class="glass-card">
+    <form method="post" enctype="multipart/form-data" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem 2rem;">
+      {% csrf_token %}
+      {% if request.GET.next %}
+        <input type="hidden" name="next" value="{{ request.GET.next }}">
+      {% endif %}
+
+      <!-- Semester selector -->
+      <div class="form-group" style="margin-bottom: 0;">
+        {{ form.semester.label_tag }}
+        {{ form.semester }}
+      </div>
+
+      <!-- Position selector -->
+      <div class="form-group" style="margin-bottom: 0;">
+        {{ form.position.label_tag }}
+        <select id="id_position" name="position" required>
+          <option value="" disabled selected>Select Position</option>
+        </select>
+      </div>
+
+      <!-- All other fields -->
+      {% for field in form %}
+        {% if field.name != 'semester' and field.name != 'position' %}
+          <div class="form-group" style="margin-bottom: 0; {% if field.name == 'photo' %}grid-column: span 2;{% endif %}">
+            {{ field.label_tag }}
+            {{ field }}
+            {% for err in field.errors %}
+              <p style="color: #ef4444; font-size: 0.82rem; margin-top: 0.3rem;">⚠️ {{ err }}</p>
+            {% endfor %}
+          </div>
+        {% endif %}
+      {% endfor %}
+
+      <div style="grid-column: span 2; margin-top: 0.5rem;">
+        <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 0.85rem; font-size: 1rem;">
+          Submit Nomination →
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  (function() {
+    const positionsBySem = JSON.parse('{{ positions_json|escapejs }}');
+    const semSelect = document.getElementById('id_semester');
+    const posSelect = document.getElementById('id_position');
+
+    function updatePositions() {
+      const sem = semSelect.value;
+      const list = positionsBySem[sem] || [];
+      posSelect.innerHTML = '<option value="" disabled selected>Select Position</option>';
+      list.forEach(item => {
+        const opt = document.createElement('option');
+        opt.value = item.id;
+        opt.textContent = item.title;
+        posSelect.appendChild(opt);
+      });
+    }
+
+    semSelect.addEventListener('change', updatePositions);
+    document.addEventListener('DOMContentLoaded', updatePositions);
+  })();
+</script>
+{% endblock %}

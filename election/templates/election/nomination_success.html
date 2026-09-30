@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block content %}
+<div style="max-width: 480px; margin: 4rem auto; text-align: center;">
+  <div class="glass-card" style="padding: 3rem 2rem;">
+    <div style="font-size: 4rem; margin-bottom: 1rem;">✅</div>
+    <h1 style="font-size: 1.8rem; font-weight: 800; color: #10b981; margin-bottom: 0.75rem;">Nomination Submitted!</h1>
+    <p style="color: var(--text-muted); margin-bottom: 2rem; font-size: 0.95rem;">The nomination has been recorded successfully.</p>
+    <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+      <a href="{% url 'nominate' %}" class="btn btn-ghost">+ Add Another</a>
+      <a href="{% url 'nominee_list' %}" class="btn btn-primary">View Nominees →</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

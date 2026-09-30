@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div style="text-align: center; margin-bottom: 2rem;">
+  <div style="font-size: 3rem; margin-bottom: 0.75rem;">🏆</div>
+  <h1 class="page-title">Elected Members</h1>
+  <p class="page-subtitle">The winning candidates across all positions.</p>
+</div>
+
+<div class="glass-card" style="padding: 1.5rem; overflow-x: auto;">
+  <table style="width: 100%; border-collapse: collapse; min-width: 600px;">
+    <thead>
+      <tr>
+        <th style="padding: 1rem; text-align: left; border-bottom: 1px solid var(--border); background: var(--bg-card-hover); color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase;">Position</th>
+        <th style="padding: 1rem; text-align: left; border-bottom: 1px solid var(--border); background: var(--bg-card-hover); color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase;">Photo</th>
+        <th style="padding: 1rem; text-align: left; border-bottom: 1px solid var(--border); background: var(--bg-card-hover); color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase;">Winner Name (USN)</th>
+        <th style="padding: 1rem; text-align: left; border-bottom: 1px solid var(--border); background: var(--bg-card-hover); color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase;">Votes</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for position, winners, vote_counts in all_results %}
+        {% for winner in winners %}
+          <tr style="border-bottom: 1px solid var(--border); transition: background 0.2s;">
+            <td style="padding: 1rem; color: var(--text); font-weight: 600;">{{ position.title }}</td>
+            <td style="padding: 1rem;">
+              {% if winner.photo %}
+                <img src="{{ winner.photo.url }}" alt="Photo of {{ winner.student.name }}" style="height: 50px; width: 50px; object-fit: cover; border-radius: 50%; box-shadow: var(--shadow);">
+              {% else %}
+                <div style="height: 50px; width: 50px; border-radius: 50%; background: var(--bg-card); border: 1px solid var(--border); color: var(--text-muted); display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 600;">No Photo</div>
+              {% endif %}
+            </td>
+            <td style="padding: 1rem; color: var(--text);">
+              <strong>{{ winner.student.name }}</strong><br>
+              <span style="font-size: 0.85rem; color: var(--text-muted);">{{ winner.student.usn }}</span>
+            </td>
+            <td style="padding: 1rem; color: var(--text); font-weight: 700;">
+              {% for vc in vote_counts %}
+                {% if vc.nominee == winner.id %}
+                  {{ vc.count }}
+                {% endif %}
+              {% endfor %}
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="4" style="padding: 1rem; text-align: center; color: var(--text-muted);">No winners declared for this position yet.</td>
+          </tr>
+        {% endfor %}
+      {% empty %}
+        <tr>
+          <td colspan="4" style="padding: 2rem; text-align: center; color: var(--text-muted);">No election results available.</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div style="text-align: center; margin-top: 2rem;">
+  <a href="{% url 'home' %}" class="btn btn-ghost">← Back to Home</a>
+</div>
+{% endblock %}

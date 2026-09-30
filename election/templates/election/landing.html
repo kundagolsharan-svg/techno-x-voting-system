@@ -1,0 +1,254 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+  /* Landing Page Specific Styles */
+  .landing-container {
+    min-height: 80vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    position: relative;
+    z-index: 10;
+  }
+
+  .landing-card {
+    position: relative;
+    text-align: center;
+    padding: 4rem 3rem;
+    border-radius: 20px;
+    background: rgba(15, 23, 42, 0.4);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+    overflow: hidden;
+    max-width: 900px;
+    width: 100%;
+    /* Subtle pulsing glow for the card */
+    animation: cardPulse 4s ease-in-out infinite alternate;
+  }
+  
+  [data-theme="light"] .landing-card {
+    background: rgba(255, 255, 255, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    animation: cardPulseLight 4s ease-in-out infinite alternate;
+  }
+
+  /* Dynamic RGB Border Light Effect */
+  .landing-card::before {
+    content: '';
+    position: absolute;
+    top: -2px; left: -2px; right: -2px; bottom: -2px;
+    background: linear-gradient(45deg, #ff0000, #ff7300, #fffb00, #48ff00, #00ffd5, #002bff, #7a00ff, #ff00c8, #ff0000);
+    background-size: 400%;
+    z-index: -1;
+    border-radius: 22px;
+    animation: rgbGlowSweep 20s linear infinite;
+    opacity: 0.3;
+    transition: opacity 0.3s;
+  }
+  
+  .landing-card:hover::before {
+    opacity: 0.6;
+  }
+
+  [data-theme="light"] .landing-card::before {
+    opacity: 0.15;
+  }
+  [data-theme="light"] .landing-card:hover::before {
+    opacity: 0.3;
+  }
+
+  @keyframes rgbGlowSweep {
+    0% { background-position: 0 0; }
+    50% { background-position: 400% 0; }
+    100% { background-position: 0 0; }
+  }
+
+  @keyframes cardPulse {
+    0% { box-shadow: 0 10px 30px rgba(99, 102, 241, 0.1); }
+    100% { box-shadow: 0 20px 50px rgba(99, 102, 241, 0.3); }
+  }
+  
+  @keyframes cardPulseLight {
+    0% { box-shadow: 0 10px 30px rgba(99, 102, 241, 0.05); }
+    100% { box-shadow: 0 20px 50px rgba(99, 102, 241, 0.15); }
+  }
+
+  .welcome-subtitle {
+    font-size: clamp(1rem, 3vw, 1.3rem);
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    margin-bottom: 1rem;
+    opacity: 0;
+    animation: slideUpFade 1s ease-out 0.2s forwards;
+  }
+
+  .college-name {
+    font-size: clamp(1.5rem, 4vw, 2.2rem);
+    font-weight: 800;
+    color: var(--text);
+    margin-bottom: 0.5rem;
+    opacity: 0;
+    animation: slideUpFade 1s ease-out 0.4s forwards;
+  }
+
+  .department-name {
+    font-size: clamp(1.2rem, 3vw, 1.8rem);
+    font-weight: 600;
+    color: var(--accent);
+    margin-bottom: 2.5rem;
+    opacity: 0;
+    animation: slideUpFade 1s ease-out 0.6s forwards;
+  }
+
+  .presents-text {
+    font-size: 1rem;
+    color: var(--text-muted);
+    font-style: italic;
+    margin-bottom: 1rem;
+    opacity: 0;
+    animation: slideUpFade 1s ease-out 0.8s forwards;
+  }
+
+  .techno-x-title {
+    font-size: clamp(3.5rem, 8vw, 6rem);
+    font-weight: 900;
+    letter-spacing: -2px;
+    margin-bottom: 3rem;
+    /* RGB Text Gradient */
+    background: linear-gradient(to right, #3b82f6, #8b5cf6, #ec4899, #ef4444, #eab308);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    background-size: 300% 300%;
+    animation: textGradientPan 5s ease infinite, scaleUp 1.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) 1s forwards;
+    opacity: 0;
+    transform: scale(0.8);
+    position: relative;
+    display: inline-block;
+  }
+  
+  /* Add a glowing reflection behind the text in dark mode */
+  [data-theme="dark"] .techno-x-title::after {
+    content: 'TECHNO X';
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to right, #3b82f6, #8b5cf6, #ec4899, #ef4444, #eab308);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    background-size: 300% 300%;
+    filter: blur(15px);
+    opacity: 0.6;
+    z-index: -1;
+    animation: textGradientPan 5s ease infinite;
+  }
+
+  @keyframes textGradientPan {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  @keyframes slideUpFade {
+    0% { opacity: 0; transform: translateY(30px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes scaleUp {
+    0% { opacity: 0; transform: scale(0.8); }
+    100% { opacity: 1; transform: scale(1); }
+  }
+
+  .election-subtitle {
+    font-size: clamp(1.2rem, 3.5vw, 2rem);
+    font-weight: 800;
+    color: var(--text);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 3.5rem;
+    opacity: 0;
+    animation: slideUpFade 1s ease-out 1.3s forwards;
+    text-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  }
+
+  .enter-btn-wrapper {
+    opacity: 0;
+    animation: slideUpFade 1s ease-out 1.7s forwards;
+  }
+
+  .enter-btn {
+    display: inline-block;
+    padding: 1.2rem 3.5rem;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #ffffff;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    border-radius: 50px;
+    text-decoration: none;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    box-shadow: 0 10px 25px rgba(99, 102, 241, 0.4);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .enter-btn::after {
+    content: '';
+    position: absolute;
+    top: 0; left: -100%; width: 50%; height: 100%;
+    background: linear-gradient(to right, rgba(255,255,255,0), rgba(255,255,255,0.4), rgba(255,255,255,0));
+    transform: skewX(-25deg);
+    animation: buttonShine 3s infinite;
+  }
+
+  @keyframes buttonShine {
+    0% { left: -100%; }
+    20% { left: 200%; }
+    100% { left: 200%; }
+  }
+
+  .enter-btn:hover {
+    transform: translateY(-4px) scale(1.05);
+    box-shadow: 0 15px 35px rgba(139, 92, 246, 0.6);
+  }
+</style>
+
+<div class="landing-container">
+  <div class="landing-card">
+    <div class="welcome-subtitle">Welcome To The</div>
+    <div class="college-name">Tontadarya College of Engineering, Gadag</div>
+    <div class="department-name">Computer Science Department</div>
+    
+    <div class="presents-text">proudly presents</div>
+    
+    <div class="techno-x-title">TECHNO X</div>
+    
+    <div class="election-subtitle">Office Bearers Election 2026-27</div>
+    
+    <div class="enter-btn-wrapper">
+      <a href="{% url 'home' %}" class="enter-btn">Enter Portal</a>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Hide navbar on the landing page for maximum impact
+  document.addEventListener('DOMContentLoaded', () => {
+    const navbar = document.querySelector('.navbar');
+    if(navbar) {
+      navbar.style.display = 'none';
+    }
+  });
+</script>
+{% endblock %}
