@@ -98,7 +98,7 @@ def home(request):
 
     total_votes_cast = Vote.objects.values('voter_usn').distinct().count()
 
-    positions = Position.objects.all()
+    positions = Position.objects.all().order_by('title')
     position_names = []
     votes_per_position = []
     for pos in positions:
@@ -427,6 +427,57 @@ def download_all_results(request):
             ])
 
     return response
+
+def download_all_results_excel(request):
+    from openpyxl import Workbook
+    from openpyxl.styles import Font
+
+    workbook = Workbook()
+    sheet = workbook.active
+    sheet.title = 'Election Results'
+    headers = ['Position', 'Winner Name', 'USN', 'Semester', 'Division', 'Votes']
+    sheet.append(headers)
+    for cell in sheet[1]:
+        cell.font = Font(bold=True)
+
+    for position in Position.objects.all():
+        nominees = Nominee.objects.filter(position=position).select_related('student')
+        vote_counts = (
+            Vote.objects.filter(position=position)
+            .values('nominee')
+            .annotate(count=models.Count('id'))
+        )
+        vote_map = {vote_count['nominee']: vote_count['count'] for vote_count in vote_counts}
+        max_votes = max(vote_map.values(), default=0)
+        winners = [
+            nominee for nominee in nominees
+            if vote_map.get(nominee.id, 0) == max_votes and max_votes > 0
+        ]
+
+        for winner in winners:
+            sheet.append([
+                position.title,
+                winner.student.name,
+                winner.student.usn,
+                winner.student.semester,
+                winner.student.division,
+                vote_map.get(winner.id, 0),
+            ])
+
+    for column in sheet.columns:
+        column_letter = column[0].column_letter
+        sheet.column_dimensions[column_letter].width = min(
+            max(len(str(cell.value or '')) for cell in column) + 2,
+            30,
+        )
+
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = 'attachment; filename="all_results.xlsx"'
+    workbook.save(response)
+    return response
+
 from django.shortcuts import render
 from django.db.models import Count
 from election.models import Position, Vote, Student
@@ -583,6 +634,198 @@ def download_semester_results(request):
             ])
 
     return response
+
+def download_semester_results_excel(request):
+    from openpyxl import Workbook
+    from openpyxl.styles import Font
+
+    semester = request.GET.get('semester', '3')
+    workbook = Workbook()
+    sheet = workbook.active
+    sheet.title = f'Semester {semester} Results'
+    headers = ['Position', 'Winner Name', 'USN', 'Division', 'Votes']
+    sheet.append(headers)
+    for cell in sheet[1]:
+        cell.font = Font(bold=True)
+
+    for position in Position.objects.all():
+        nominees = Nominee.objects.filter(
+            position=position,
+            student__semester=semester,
+        ).select_related('student')
+        vote_counts = (
+            Vote.objects.filter(position=position)
+            .values('nominee')
+            .annotate(count=models.Count('id'))
+        )
+        vote_map = {vote_count['nominee']: vote_count['count'] for vote_count in vote_counts}
+        max_votes = max(vote_map.values(), default=0)
+        winners = [
+            nominee for nominee in nominees
+            if vote_map.get(nominee.id, 0) == max_votes and max_votes > 0
+        ]
+
+        for winner in winners:
+            sheet.append([
+                position.title,
+                winner.student.name,
+                winner.student.usn,
+                winner.student.division,
+                vote_map.get(winner.id, 0),
+            ])
+
+    for column in sheet.columns:
+        column_letter = column[0].column_letter
+        sheet.column_dimensions[column_letter].width = min(
+            max(len(str(cell.value or '')) for cell in column) + 2,
+            30,
+        )
+
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = (
+        f'attachment; filename="semester_{semester}_results.xlsx"'
+    )
+    workbook.save(response)
+    return response
+
+def download_semester_results_pdf(request):
+    semester = request.GET.get('semester', '3')
+    buffer = io.BytesIO()
+    pdf = canvas.Canvas(buffer, pagesize=A4)
+    width, height = A4
+
+    def draw_header():
+        pdf.setFont('Helvetica-Bold', 16)
+        pdf.drawString(50, height - 50, f'Semester {semester} Election Results')
+        pdf.setFont('Helvetica-Bold', 10)
+        pdf.drawString(50, height - 80, 'Position')
+        pdf.drawString(190, height - 80, 'Winner')
+        pdf.drawString(350, height - 80, 'USN')
+        pdf.drawString(450, height - 80, 'Division')
+        pdf.drawString(510, height - 80, 'Votes')
+        return height - 100
+
+    y = draw_header()
+    pdf.setFont('Helvetica', 10)
+    for position in Position.objects.all():
+        nominees = Nominee.objects.filter(
+            position=position,
+            student__semester=semester,
+        ).select_related('student')
+        vote_counts = (
+            Vote.objects.filter(position=position)
+            .values('nominee')
+            .annotate(count=models.Count('id'))
+        )
+        vote_map = {vote_count['nominee']: vote_count['count'] for vote_count in vote_counts}
+        max_votes = max(vote_map.values(), default=0)
+        winners = [
+            nominee for nominee in nominees
+            if vote_map.get(nominee.id, 0) == max_votes and max_votes > 0
+        ]
+
+        for winner in winners:
+            if y < 50:
+                pdf.showPage()
+                y = draw_header()
+                pdf.setFont('Helvetica', 10)
+            pdf.drawString(50, y, position.title[:22])
+            pdf.drawString(190, y, winner.student.name[:25])
+            pdf.drawString(350, y, winner.student.usn[:15])
+            pdf.drawString(450, y, winner.student.division)
+            pdf.drawString(510, y, str(vote_map.get(winner.id, 0)))
+            y -= 20
+
+    pdf.save()
+    buffer.seek(0)
+    return HttpResponse(buffer, content_type='application/pdf', headers={
+        'Content-Disposition': f'attachment; filename="semester_{semester}_results.pdf"'
+    })
+
+def download_voter_details_excel(request):
+    from openpyxl import Workbook
+    from openpyxl.styles import Font
+
+    voter_usn = request.GET.get('voter_usn', '').strip().upper()
+    if not voter_usn:
+        return HttpResponse('Please select a voter USN.', status=400)
+
+    votes = Vote.objects.filter(voter_usn=voter_usn).select_related(
+        'position', 'nominee__student'
+    ).order_by('position__title')
+    workbook = Workbook()
+    sheet = workbook.active
+    sheet.title = 'Voter Details'
+    sheet.append(['Voter USN', 'Position', 'Candidate', 'Candidate USN', 'Vote Time'])
+    for cell in sheet[1]:
+        cell.font = Font(bold=True)
+
+    for vote in votes:
+        sheet.append([
+            vote.voter_usn,
+            vote.position.title,
+            vote.nominee.student.name,
+            vote.nominee.student.usn,
+            vote.timestamp.replace(tzinfo=None) if vote.timestamp else '',
+        ])
+
+    for column in sheet.columns:
+        column_letter = column[0].column_letter
+        sheet.column_dimensions[column_letter].width = min(
+            max(len(str(cell.value or '')) for cell in column) + 2,
+            32,
+        )
+
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = f'attachment; filename="voter_{voter_usn}_details.xlsx"'
+    workbook.save(response)
+    return response
+
+def download_voter_details_pdf(request):
+    voter_usn = request.GET.get('voter_usn', '').strip().upper()
+    if not voter_usn:
+        return HttpResponse('Please select a voter USN.', status=400)
+
+    votes = Vote.objects.filter(voter_usn=voter_usn).select_related(
+        'position', 'nominee__student'
+    ).order_by('position__title')
+    buffer = io.BytesIO()
+    pdf = canvas.Canvas(buffer, pagesize=A4)
+    width, height = A4
+    y = height - 50
+
+    pdf.setFont('Helvetica-Bold', 16)
+    pdf.drawString(50, y, f'Voting Details for {voter_usn}')
+    y -= 35
+    pdf.setFont('Helvetica-Bold', 10)
+    pdf.drawString(50, y, 'Position')
+    pdf.drawString(190, y, 'Candidate')
+    pdf.drawString(350, y, 'Candidate USN')
+    pdf.drawString(460, y, 'Vote Time')
+    y -= 20
+    pdf.setFont('Helvetica', 9)
+
+    for vote in votes:
+        if y < 50:
+            pdf.showPage()
+            y = height - 50
+            pdf.setFont('Helvetica', 9)
+        pdf.drawString(50, y, vote.position.title[:22])
+        pdf.drawString(190, y, vote.nominee.student.name[:24])
+        pdf.drawString(350, y, vote.nominee.student.usn[:15])
+        timestamp = vote.timestamp.strftime('%Y-%m-%d %H:%M') if vote.timestamp else ''
+        pdf.drawString(460, y, timestamp)
+        y -= 18
+
+    pdf.save()
+    buffer.seek(0)
+    return HttpResponse(buffer, content_type='application/pdf', headers={
+        'Content-Disposition': f'attachment; filename="voter_{voter_usn}_details.pdf"'
+    })
 
 
 from django.http import HttpResponse
@@ -982,6 +1225,28 @@ def admin_dashboard(request):
     semesters = ['3', '5', '7']
     voters_per_semester = [sem_counts[s] for s in semesters]
     not_voted = total_students - total_votes_cast
+    selected_position_id = request.GET.get('position', '').strip()
+    detail_positions = positions
+    if selected_position_id.isdigit() and positions.filter(id=selected_position_id).exists():
+        detail_positions = positions.filter(id=selected_position_id)
+
+    vote_records = Vote.objects.select_related(
+        'nominee__student', 'position'
+    ).order_by('-timestamp')
+    votes_by_position = {}
+    for vote in vote_records:
+        votes_by_position.setdefault(vote.position_id, []).append(vote)
+    vote_details_by_position = [
+        {
+            'position': position,
+            'votes': votes_by_position.get(position.id, []),
+        }
+        for position in sorted(
+            detail_positions,
+            key=lambda position: bool(votes_by_position.get(position.id)),
+            reverse=True,
+        )
+    ]
 
     context = {
         'total_students': total_students,
@@ -992,6 +1257,13 @@ def admin_dashboard(request):
         'voters_per_semester': json.dumps(voters_per_semester),
         'voted_count': total_votes_cast,
         'not_voted_count': not_voted,
+        'vote_details_by_position': vote_details_by_position,
+        'positions': positions,
+        'selected_position_id': selected_position_id,
+        'semester_options': ['3', '5', '7'],
+        'voter_usns': Vote.objects.values_list(
+            'voter_usn', flat=True
+        ).distinct().order_by('voter_usn'),
     }
     
     return render(request, 'election/admin_dashboard.html', context)

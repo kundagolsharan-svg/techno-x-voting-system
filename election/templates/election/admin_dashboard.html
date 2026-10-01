@@ -5,6 +5,57 @@
 <h1 class="page-title">⚡ Admin Dashboard</h1>
 <p class="page-subtitle">Live election statistics and vote distribution charts.</p>
 
+<div style="display: flex; gap: 0.75rem; flex-wrap: wrap; margin: 1.25rem 0 1.5rem;">
+  <a href="{% url 'download_all_results_excel' %}" class="btn-primary">📊 Download Excel</a>
+  <a href="{% url 'download_all_results_pdf' %}" class="btn-ghost">📄 Download PDF</a>
+</div>
+
+<div class="glass-card" style="margin-bottom: 1.5rem;">
+  <h3 style="font-size: 1rem; font-weight: 700; color: var(--text); margin-bottom: 1rem;">📚 Semester-wise Results</h3>
+  <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+    <form method="get" action="{% url 'download_semester_results_excel' %}" style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+      <select name="semester" aria-label="Semester for Excel download" style="min-width: 160px; padding: 0.6rem 0.75rem;">
+        {% for semester in semester_options %}
+        <option value="{{ semester }}">Semester {{ semester }}</option>
+        {% endfor %}
+      </select>
+      <button type="submit" class="btn-primary">📊 Download Semester Excel</button>
+    </form>
+    <form method="get" action="{% url 'download_semester_results_pdf' %}" style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+      <select name="semester" aria-label="Semester for PDF download" style="min-width: 160px; padding: 0.6rem 0.75rem;">
+        {% for semester in semester_options %}
+        <option value="{{ semester }}">Semester {{ semester }}</option>
+        {% endfor %}
+      </select>
+      <button type="submit" class="btn-ghost">📄 Download Semester PDF</button>
+    </form>
+  </div>
+</div>
+
+<div class="glass-card" style="margin-bottom: 1.5rem;">
+  <h3 style="font-size: 1rem; font-weight: 700; color: var(--text); margin-bottom: 1rem;">👤 Specific Voter Details</h3>
+  <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+    <form method="get" action="{% url 'download_voter_details_excel' %}" style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+      <select name="voter_usn" required aria-label="Voter USN for Excel download" style="min-width: 190px; padding: 0.6rem 0.75rem;">
+        <option value="">Select Voter USN</option>
+        {% for voter_usn in voter_usns %}
+        <option value="{{ voter_usn }}">{{ voter_usn }}</option>
+        {% endfor %}
+      </select>
+      <button type="submit" class="btn-primary">📊 Download Voter Excel</button>
+    </form>
+    <form method="get" action="{% url 'download_voter_details_pdf' %}" style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+      <select name="voter_usn" required aria-label="Voter USN for PDF download" style="min-width: 190px; padding: 0.6rem 0.75rem;">
+        <option value="">Select Voter USN</option>
+        {% for voter_usn in voter_usns %}
+        <option value="{{ voter_usn }}">{{ voter_usn }}</option>
+        {% endfor %}
+      </select>
+      <button type="submit" class="btn-ghost">📄 Download Voter PDF</button>
+    </form>
+  </div>
+</div>
+
 <!-- STAT CARDS -->
 <div class="stat-grid">
   <div class="stat-card">
@@ -36,6 +87,55 @@
 <div class="glass-card">
   <h3 style="font-size: 1rem; font-weight: 700; color: var(--text); margin-bottom: 1.25rem;">📚 Voters by Semester</h3>
   <canvas id="semesterChart" height="120"></canvas>
+</div>
+
+<div style="margin-top: 1.5rem;">
+  <div style="display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem;">
+    <h2 class="page-title" style="font-size: 1.35rem; margin-bottom: 0;">🗳️ Vote Details by Position</h2>
+    <form method="get" style="display: flex; align-items: center; gap: 0.6rem;">
+      <label for="position-filter" style="color: var(--text-muted); font-size: 0.9rem;">Filter position:</label>
+      <select id="position-filter" name="position" onchange="this.form.submit()" style="min-width: 190px; padding: 0.6rem 0.75rem;">
+        <option value="">All Positions</option>
+        {% for position in positions %}
+        <option value="{{ position.id }}" {% if selected_position_id == position.id|stringformat:"s" %}selected{% endif %}>{{ position.title }}</option>
+        {% endfor %}
+      </select>
+    </form>
+  </div>
+  {% for position_data in vote_details_by_position %}
+  <div class="glass-card" style="margin-bottom: 1rem; overflow-x: auto;">
+    <h3 style="font-size: 1rem; font-weight: 700; color: var(--text); margin-bottom: 1rem;">
+      {{ position_data.position.title }}
+      <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 400;">({{ position_data.votes|length }} votes)</span>
+    </h3>
+    {% if position_data.votes %}
+    <table style="width: 100%; border-collapse: collapse; min-width: 520px;">
+      <thead>
+        <tr style="text-align: left; color: var(--muted); border-bottom: 1px solid rgba(255,255,255,0.1);">
+          <th style="padding: 0.75rem;">Voter USN</th>
+          <th style="padding: 0.75rem;">Candidate Voted For</th>
+          <th style="padding: 0.75rem;">Time</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for vote in position_data.votes %}
+        <tr style="border-bottom: 1px solid rgba(255,255,255,0.06);">
+          <td style="padding: 0.75rem; color: var(--text);">{{ vote.voter_usn }}</td>
+          <td style="padding: 0.75rem; color: var(--text);">{{ vote.nominee.student.name }} ({{ vote.nominee.student.usn }})</td>
+          <td style="padding: 0.75rem; color: var(--muted);">{{ vote.timestamp|date:"M d, Y H:i" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p style="color: var(--muted); margin: 0;">No votes recorded for this position yet.</p>
+    {% endif %}
+  </div>
+  {% empty %}
+  <div class="glass-card">
+    <p style="color: var(--muted); margin: 0;">No positions have been created yet.</p>
+  </div>
+  {% endfor %}
 </div>
 
 <script>
