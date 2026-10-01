@@ -1248,6 +1248,34 @@ def admin_dashboard(request):
         )
     ]
 
+    # ── Nominee vote leaderboard (per position) ───────────────────────
+    from election.models import Nominee
+    nominee_vote_data = []
+    for pos in positions:
+        nom_counts = (
+            Vote.objects.filter(position=pos)
+            .values('nominee')
+            .annotate(count=Count('id'))
+        )
+        vote_map = {vc['nominee']: vc['count'] for vc in nom_counts}
+        nominees = Nominee.objects.filter(position=pos).select_related('student')
+        entries = sorted(
+            [
+                {
+                    'name': n.student.name,
+                    'usn': n.student.usn,
+                    'semester': n.student.semester,
+                    'division': n.student.division,
+                    'votes': vote_map.get(n.id, 0),
+                }
+                for n in nominees
+            ],
+            key=lambda x: x['votes'],
+            reverse=True,
+        )
+        if entries:
+            nominee_vote_data.append({'position': pos, 'entries': entries})
+
     context = {
         'total_students': total_students,
         'total_votes_cast': total_votes_cast,
@@ -1264,6 +1292,7 @@ def admin_dashboard(request):
         'voter_usns': Vote.objects.values_list(
             'voter_usn', flat=True
         ).distinct().order_by('voter_usn'),
+        'nominee_vote_data': nominee_vote_data,
     }
     
     return render(request, 'election/admin_dashboard.html', context)

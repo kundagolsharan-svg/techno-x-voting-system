@@ -89,6 +89,74 @@
   <canvas id="semesterChart" height="120"></canvas>
 </div>
 
+<!-- NOMINEE VOTE LEADERBOARD -->
+<div style="margin-top: 1.5rem;">
+  <h2 class="page-title" style="font-size: 1.35rem; margin-bottom: 1rem;">🏅 Nominee Vote Count by Position</h2>
+  {% for pos_data in nominee_vote_data %}
+  <div class="glass-card" style="margin-bottom: 1rem; overflow-x: auto;">
+    <h3 style="font-size: 1rem; font-weight: 700; color: var(--text); margin-bottom: 1rem;">
+      {{ pos_data.position.title }}
+      <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 400;">({{ pos_data.entries|length }} nominee{{ pos_data.entries|length|pluralize }})</span>
+    </h3>
+    <table style="width: 100%; border-collapse: collapse; min-width: 480px;">
+      <thead>
+        <tr style="text-align: left; color: var(--muted); border-bottom: 1px solid rgba(255,255,255,0.1);">
+          <th style="padding: 0.6rem 0.75rem;">#</th>
+          <th style="padding: 0.6rem 0.75rem;">Nominee</th>
+          <th style="padding: 0.6rem 0.75rem;">USN</th>
+          <th style="padding: 0.6rem 0.75rem;">Sem</th>
+          <th style="padding: 0.6rem 0.75rem;">Div</th>
+          <th style="padding: 0.6rem 0.75rem; text-align: center;">Votes</th>
+          <th style="padding: 0.6rem 0.75rem; min-width: 140px;">Vote Bar</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% with max_votes=pos_data.entries.0.votes %}
+        {% for entry in pos_data.entries %}
+        {% with rank=forloop.counter %}
+        <tr style="border-bottom: 1px solid rgba(255,255,255,0.06); {% if rank == 1 and entry.votes > 0 %}background: rgba(99,102,241,0.08);{% endif %}">
+          <td style="padding: 0.65rem 0.75rem; font-weight: 700; color:
+            {% if rank == 1 and entry.votes > 0 %}#fbbf24
+            {% elif rank == 2 and entry.votes > 0 %}#94a3b8
+            {% elif rank == 3 and entry.votes > 0 %}#c97b3a
+            {% else %}var(--muted){% endif %};">
+            {% if rank == 1 and entry.votes > 0 %}🥇{% elif rank == 2 and entry.votes > 0 %}🥈{% elif rank == 3 and entry.votes > 0 %}🥉{% else %}{{ rank }}{% endif %}
+          </td>
+          <td style="padding: 0.65rem 0.75rem; color: var(--text); font-weight: {% if rank == 1 and entry.votes > 0 %}700{% else %}400{% endif %};">{{ entry.name }}</td>
+          <td style="padding: 0.65rem 0.75rem; color: var(--muted); font-size: 0.85rem;">{{ entry.usn }}</td>
+          <td style="padding: 0.65rem 0.75rem; color: var(--muted);">{{ entry.semester }}</td>
+          <td style="padding: 0.65rem 0.75rem; color: var(--muted);">{{ entry.division }}</td>
+          <td style="padding: 0.65rem 0.75rem; text-align: center;">
+            <span style="display: inline-block; background: {% if rank == 1 and entry.votes > 0 %}linear-gradient(135deg,#fbbf24,#f59e0b){% else %}rgba(99,102,241,0.7){% endif %}; color: #fff; font-weight: 700; font-size: 0.95rem; padding: 0.2rem 0.75rem; border-radius: 999px; min-width: 2.5rem;">
+              {{ entry.votes }}
+            </span>
+          </td>
+          <td style="padding: 0.65rem 0.75rem;">
+            {% if max_votes > 0 %}
+            <div style="background: rgba(255,255,255,0.07); border-radius: 999px; height: 8px; overflow: hidden;">
+              <div style="height: 100%; border-radius: 999px; width: {% widthratio entry.votes max_votes 100 %}%;
+                background: {% if rank == 1 %}linear-gradient(90deg,#fbbf24,#f59e0b){% elif rank == 2 %}linear-gradient(90deg,#94a3b8,#64748b){% elif rank == 3 %}linear-gradient(90deg,#c97b3a,#a05c28){% else %}linear-gradient(90deg,#6366f1,#4f46e5){% endif %};
+                transition: width 0.4s ease;">
+              </div>
+            </div>
+            {% else %}
+            <span style="color: var(--muted); font-size: 0.8rem;">No votes yet</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endwith %}
+        {% endfor %}
+        {% endwith %}
+      </tbody>
+    </table>
+  </div>
+  {% empty %}
+  <div class="glass-card">
+    <p style="color: var(--muted); margin: 0;">No nominees have been added yet.</p>
+  </div>
+  {% endfor %}
+</div>
+
 <div style="margin-top: 1.5rem;">
   <div style="display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem;">
     <h2 class="page-title" style="font-size: 1.35rem; margin-bottom: 0;">🗳️ Vote Details by Position</h2>
